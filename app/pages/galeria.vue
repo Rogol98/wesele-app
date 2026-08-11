@@ -37,7 +37,6 @@ const getOrCreateUserId = () => {
   }
 }
 
-// Pobieranie zdjęć z bazy
 const fetchPhotos = async () => {
   loading.value = true
   try {
