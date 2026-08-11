@@ -94,44 +94,57 @@ const getTotalReactions = (reactions?: Record<string, number>) => {
   return Object.values(reactions).reduce((acc, count) => acc + count, 0)
 }
 
-// Kompresja zdjęcia w przeglądarce: max 2560px, JPEG 92%
+// Kompresja zdjęcia w przeglądarce: max 2560px, JPEG 92% (DODANO OBSŁUGĘ BŁĘDÓW!)
 const compressImage = (file: File): Promise<Blob> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = (e) => {
-      const img = new Image()
-      img.src = e.target?.result as string
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        const MAX_WIDTH = 2560
-        let width = img.width
-        let height = img.height
+  return new Promise((resolve, reject) => {
+    try {
+      const reader = new FileReader()
+      reader.onerror = () => reject(new Error("Wystąpił błąd podczas czytania pliku przez FileReader."))
+      reader.readAsDataURL(file)
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onerror = () => reject(new Error("Przeglądarka nie mogła załadować danych obrazu do pamięci."))
+        img.src = e.target?.result as string
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas')
+            const MAX_WIDTH = 2560
+            let width = img.width
+            let height = img.height
 
-        if (width > MAX_WIDTH) {
-          height = Math.round((height * MAX_WIDTH) / width)
-          width = MAX_WIDTH
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width)
+              width = MAX_WIDTH
+            }
+
+            canvas.width = width
+            canvas.height = height
+
+            const ctx = canvas.getContext('2d')
+            if (!ctx) return reject(new Error("Brak kontekstu 2D w Canvas (brak pamięci?)."))
+            
+            ctx.drawImage(img, 0, 0, width, height)
+
+            canvas.toBlob(
+              (blob) => {
+                if (blob) resolve(blob)
+                else reject(new Error("toBlob zwrócił null. Safari zabiło proces z braku RAMu?"))
+              },
+              'image/jpeg',
+              0.92
+            )
+          } catch (canvasErr) {
+            reject(new Error("Błąd podczas rysowania na Canvas: " + canvasErr))
+          }
         }
-
-        canvas.width = width
-        canvas.height = height
-
-        const ctx = canvas.getContext('2d')
-        ctx?.drawImage(img, 0, 0, width, height)
-
-        canvas.toBlob(
-          (blob) => {
-            resolve(blob || file)
-          },
-          'image/jpeg',
-          0.92
-        )
       }
+    } catch (fatalErr) {
+      reject(new Error("Krytyczny błąd funkcji compressImage: " + fatalErr))
     }
   })
 }
 
-// Masowe wgrywanie wielu zdjęć (Zmienione na bezpieczną pętlę!)
+// Masowe wgrywanie wielu zdjęć (Z LOGAMI ŚLEDCZYMI)
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   if (!target.files || target.files.length === 0) return
@@ -145,45 +158,52 @@ const handleFileUpload = async (event: Event) => {
     return
   }
 
-  if (imageFiles.length < rawFiles.length) {
-    alert('Wybrano pliki wideo lub inne niedozwolone formaty – zostaną one pominięte.')
-  }
-
   uploading.value = true
   let successCount = 0
 
   try {
     const currentAuthor = authorName.value.trim() || 'Anonim'
 
-    // Pętla kompresująca i WYSYŁAJĄCA każde zdjęcie pojedynczo
+    // Pętla wysyłająca z systemem śledzenia postępów
     for (let i = 0; i < imageFiles.length; i++) {
+      let debugStep = "Start"
       const file = imageFiles[i]
       if (!file) continue
 
-      uploadProgress.value = `Wysyłanie ${i + 1} z ${imageFiles.length}...`
-      
-      const compressedBlob = await compressImage(file)
-      const compressedFile = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
-        type: 'image/jpeg'
-      })
+      try {
+        uploadProgress.value = `Wysyłanie ${i + 1} z ${imageFiles.length}...`
+        
+        debugStep = `Kompresja pliku ${file.name} (Rozmiar: ${(file.size / 1024 / 1024).toFixed(2)} MB)`
+        const compressedBlob = await compressImage(file)
+        
+        debugStep = `Tworzenie FormData dla ${file.name}`
+        const compressedFile = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+          type: 'image/jpeg'
+        })
 
-      const singleFormData = new FormData()
-      singleFormData.append('author', currentAuthor)
-      singleFormData.append('file', compressedFile)
+        const singleFormData = new FormData()
+        singleFormData.append('author', currentAuthor)
+        singleFormData.append('file', compressedFile)
 
-      await $fetch('/api/upload', {
-        method: 'POST',
-        body: singleFormData
-      })
-      
-      successCount++
+        debugStep = `Wysyłka (fetch) pliku ${file.name} do API`
+        await $fetch('/api/upload', {
+          method: 'POST',
+          body: singleFormData
+        })
+        
+        successCount++
+      } catch (innerErr: any) {
+        // Jeśli JEDNO zdjęcie z paczki wybuchnie, pokażemy DOKŁADNIE dlaczego i na jakim etapie!
+        alert(`🚨 ŚLEDZTWO (Zdjęcie ${i + 1} z ${imageFiles.length}):\n\nKrok: ${debugStep}\n\nTreść błędu: ${innerErr.message || innerErr}`)
+        throw innerErr // Przerywamy pętlę po pierwszym krytycznym błędzie, żeby zobaczyć powód
+      }
     }
 
     authorName.value = ''
     if (fileInput.value) fileInput.value.value = ''
     await fetchPhotos()
   } catch (err: any) {
-    alert(`Wystąpił błąd! Udało się wysłać ${successCount} z ${imageFiles.length} zdjęć. Szczegóły: ` + (err.statusMessage || err.message || 'Błąd serwera'))
+    alert(`Zatrzymano operację. Wysłano ${successCount} zdjęć.`)
   } finally {
     uploading.value = false
     uploadProgress.value = ''
