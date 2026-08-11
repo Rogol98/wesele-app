@@ -131,7 +131,7 @@ const compressImage = (file: File): Promise<Blob> => {
   })
 }
 
-// Masowe wgrywanie wielu zdjęć
+// Masowe wgrywanie wielu zdjęć (Zmienione na bezpieczną pętlę!)
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   if (!target.files || target.files.length === 0) return
@@ -150,43 +150,45 @@ const handleFileUpload = async (event: Event) => {
   }
 
   uploading.value = true
+  let successCount = 0
 
   try {
-    const formData = new FormData()
-    formData.append('author', authorName.value.trim() || 'Anonim')
+    const currentAuthor = authorName.value.trim() || 'Anonim'
 
-    // Kompresowanie każdego zdjęcia po kolei
+    // Pętla kompresująca i WYSYŁAJĄCA każde zdjęcie pojedynczo
     for (let i = 0; i < imageFiles.length; i++) {
       const file = imageFiles[i]
       if (!file) continue
 
-      uploadProgress.value = `Przetwarzanie ${i + 1} z ${imageFiles.length}...`
+      uploadProgress.value = `Wysyłanie ${i + 1} z ${imageFiles.length}...`
       
       const compressedBlob = await compressImage(file)
       const compressedFile = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
         type: 'image/jpeg'
       })
-      formData.append('file', compressedFile)
+
+      const singleFormData = new FormData()
+      singleFormData.append('author', currentAuthor)
+      singleFormData.append('file', compressedFile)
+
+      await $fetch('/api/upload', {
+        method: 'POST',
+        body: singleFormData
+      })
+      
+      successCount++
     }
-
-    uploadProgress.value = 'Wysyłanie na serwer...'
-
-    await $fetch('/api/upload', {
-      method: 'POST',
-      body: formData
-    })
 
     authorName.value = ''
     if (fileInput.value) fileInput.value.value = ''
     await fetchPhotos()
   } catch (err: any) {
-    alert('Wystąpił błąd podczas dodawania zdjęć: ' + (err.statusMessage || err.message || 'Błąd serwera'))
+    alert(`Wystąpił błąd! Udało się wysłać ${successCount} z ${imageFiles.length} zdjęć. Szczegóły: ` + (err.statusMessage || err.message || 'Błąd serwera'))
   } finally {
     uploading.value = false
     uploadProgress.value = ''
   }
 }
-
 // --- LOGIKA LIGHTBOXA ---
 const openLightbox = (index: number) => {
   currentPhotoIndex.value = index
