@@ -46,8 +46,8 @@ onUnmounted(() => {
     <!-- Ciemny overlay dla czytelności tekstu -->
     <div class="absolute inset-0 bg-black/40 backdrop-blur-[0.2px]"></div>
 
-    <!-- Zawartość Hero (zmieniono na translate-y-12 - złoty środek!) -->
-    <div class="relative z-10 my-auto translate-y-12 md:translate-y-3 flex flex-col items-center max-w-4xl w-full">      
+    <!-- Zawartość Hero (wyciągnięte do góry przez -translate-y-4) -->
+    <div class="relative z-10 my-auto -translate-y-4 md:translate-y-3 flex flex-col items-center max-w-4xl w-full">      
       
       <!-- Subtitle -->
       <p class="tracking-[0.3em] text-sm sm:text-base uppercase mb-4 font-light drop-shadow">
