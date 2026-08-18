@@ -10,13 +10,14 @@ export default defineEventHandler(async (event) => {
     const query = getQuery(event)
     const userId = (query.userId as string) || ''
 
+    // Pobieramy zdjęcia
     const { data: photos, error: photosErr } = await supabase
       .from('photos')
       .select('*')
-      .order('created_at', { ascending: false })
 
     if (photosErr) throw photosErr
 
+    // Pobieramy reakcje
     const { data: reactions, error: reactErr } = await supabase
       .from('photo_reactions')
       .select('*')
@@ -42,6 +43,23 @@ export default defineEventHandler(async (event) => {
         reactions: counts,
         userReaction
       }
+    })
+
+    // SORTOWANIE ZDJĘĆ:
+    // 1. Według łącznej liczby reakcji (malejąco - najwięcej na górze)
+    // 2. Jeśli remis (np. po 0 reakcji), sortujemy po dacie dodania (od najnowszych)
+    photosWithReactions.sort((a, b) => {
+      const totalReactionsA = Object.values(a.reactions).reduce((acc, count) => acc + count, 0)
+      const totalReactionsB = Object.values(b.reactions).reduce((acc, count) => acc + count, 0)
+
+      if (totalReactionsA !== totalReactionsB) {
+        return totalReactionsB - totalReactionsA // Sortowanie po liczbie reakcji
+      }
+      
+      // Jeśli liczba reakcji jest taka sama, sortuj po dacie (created_at)
+      const dateA = new Date(a.created_at).getTime()
+      const dateB = new Date(b.created_at).getTime()
+      return dateB - dateA
     })
 
     return photosWithReactions
