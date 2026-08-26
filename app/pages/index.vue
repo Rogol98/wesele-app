@@ -4,6 +4,7 @@
     <InvitationSection />
     <LocationsSection />
     <ScheduleSection />
+    <KahootSection />
     <DriverSection />
     <FooterSection />
   </div>
