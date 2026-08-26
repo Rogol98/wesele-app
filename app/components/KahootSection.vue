@@ -1,5 +1,5 @@
 <template>
-  <section class="relative z-10 w-full bg-[#fdfbf7] pb-16 sm:pb-24 px-4">
+  <section class="relative z-10 w-full bg-[url('/kahoot_background.png')] bg-cover bg-center bg-no-repeat pb-16 sm:pb-24 px-4 sm:pt-12 pt-8">
     <div class="max-w-4xl mx-auto bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-stone-200/80 text-center flex flex-col items-center">
       
       <!-- LOGO KAHOOTA -->
