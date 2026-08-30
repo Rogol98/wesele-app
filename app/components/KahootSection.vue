@@ -58,8 +58,8 @@
           <div class="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center text-2xl mb-3 shadow-sm border border-amber-100">
             🏆
           </div>
-          <p class="text-sm font-semibold text-stone-800">4. Zgarnij nagrodę</p>
-          <p class="text-xs text-stone-500 mt-1">Jest o co walczyć🔥. Za zajęcie 1. miejsca przewidzieliśmy Nagrodę Główną!</p>
+          <p class="text-sm font-semibold text-stone-800">4. Zgarnij nagrody</p>
+          <p class="text-xs text-stone-500 mt-1">Jest o co walczyć🔥 Za zdobycie pierwszych trzech miejsc przewidziane są nagrody!</p>
         </div>
       </div>
 
