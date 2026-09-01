@@ -185,15 +185,16 @@ onUnmounted(() => {
             <p v-if="loc.time" class="inline-block text-amber-900 bg-amber-100/90 font-semibold text-xs sm:text-sm px-4 py-1.5 rounded-full mb-4">
               ⏱️ {{ loc.time }}
             </p>
-            
-            <p v-if="loc.breakfast" class="inline-block text-stone-700 bg-stone-100/90 font-semibold text-xs sm:text-sm px-4 py-1.5 rounded-full mb-4 border border-stone-200">
-              ☕ {{ loc.breakfast }}
-            </p>
 
             <div class="text-stone-700 text-sm sm:text-base space-y-1 mb-6 mt-2">
               <p class="font-semibold text-stone-900 text-base sm:text-lg">{{ loc.placeName }}</p>
               <p>{{ loc.address }}</p>
               <p class="text-stone-500">{{ loc.city }}</p>
+              
+              <!-- INFORMACJA O ŚNIADANIU WTOPIANA W TEKST -->
+              <p v-if="loc.breakfast" class="text-stone-600 font-medium pt-2">
+                ☕ {{ loc.breakfast }}
+              </p>
 
               <div v-if="loc.phone || loc.website" class="pt-3 flex flex-wrap justify-center gap-4 text-xs sm:text-sm border-t border-stone-200 mt-4">
                 <p v-if="loc.phone">
