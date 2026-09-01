@@ -5,6 +5,7 @@ interface LocationCard {
   title: string
   subtitle: string
   time?: string
+  breakfast?: string
   placeName: string
   address: string
   city: string
@@ -45,6 +46,7 @@ const locations: LocationCard[] = [
     type: 'home',
     title: 'Noclegi u Zapały',
     subtitle: 'Noclegi dla gości',
+    breakfast: 'Śniadanie (Hotel Górski Raj): 8:00 – 10:00',
     placeName: 'U Zapały',
     address: 'Poręba Wielka 182',
     city: '34-735 Poręba Wielka',
@@ -58,6 +60,7 @@ const locations: LocationCard[] = [
     type: 'hotel',
     title: 'Hotel Górski Raj',
     subtitle: 'Noclegi dla gości',
+    breakfast: 'Śniadanie: 8:00 – 10:00',
     placeName: 'Górski Raj',
     address: 'Poręba Wielka 765',
     city: '34-735 Niedźwiedź',
@@ -182,8 +185,12 @@ onUnmounted(() => {
             <p v-if="loc.time" class="inline-block text-amber-900 bg-amber-100/90 font-semibold text-xs sm:text-sm px-4 py-1.5 rounded-full mb-4">
               ⏱️ {{ loc.time }}
             </p>
+            
+            <p v-if="loc.breakfast" class="inline-block text-stone-700 bg-stone-100/90 font-semibold text-xs sm:text-sm px-4 py-1.5 rounded-full mb-4 border border-stone-200">
+              ☕ {{ loc.breakfast }}
+            </p>
 
-            <div class="text-stone-700 text-sm sm:text-base space-y-1 mb-6">
+            <div class="text-stone-700 text-sm sm:text-base space-y-1 mb-6 mt-2">
               <p class="font-semibold text-stone-900 text-base sm:text-lg">{{ loc.placeName }}</p>
               <p>{{ loc.address }}</p>
               <p class="text-stone-500">{{ loc.city }}</p>
