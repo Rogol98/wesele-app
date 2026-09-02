@@ -50,7 +50,7 @@ const locations: LocationCard[] = [
     placeName: 'U Zapały',
     address: 'Poręba Wielka 182',
     city: '34-735 Poręba Wielka',
-    phone: '502 521 004',
+    phone: '694 004 391',
     website: 'http://www.u-zapaly.pl/',
     googleMapsUrl: 'https://maps.google.com/?q=Poręba+Wielka+182,+34-735+Poręba+Wielka',
     mapEmbedUrl: 'https://maps.google.com/maps?q=Por%C4%99ba+Wielka+182,+34-735+Por%C4%99ba+Wielka&t=&z=15&ie=UTF8&iwloc=&output=embed',
